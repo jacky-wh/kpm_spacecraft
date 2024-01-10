@@ -4,9 +4,10 @@ from scipy.integrate import odeint
 from utils import matrixtoquaternion,hat,getbasis,dynamics,dm_to_array
 import matplotlib.pyplot as plt
 # 初始状态R0与参考状态Rd
-R0 = np.array([[0.4830,0.8365,0.2588],
-               [-0.3209, 0.4441, -0.8365],
-               [-0.8147, 0.3209 ,0.4830]])
+
+R0=np.array([[0.74783335, -0.01635712,  0.66368477],
+             [0.40748675,  0.8005386,  -0.43942187],
+            [-0.52411778,  0.59905713,  0.60533481]])
 wb0 = np.array([[0],[0],[0]])
 X0=np.vstack((R0.reshape(-1,1),wb0.reshape(-1,1)))
 Rd = np.diag([1,1,1])
@@ -18,13 +19,13 @@ Blift=np.load('Blift.npy')
 ##  初始化变量
 nx=len(Alift)   #状态维度
 nu=len(Blift.T) #状态维度
-N=10            #预测时域4
+N=50          #预测时域4
 
 Q = np.zeros((nx, nx))
-Q[:12, :12] = np.eye(12)
+Q[:12, :12] = np.eye(12)*10
 R=np.eye(nu)
 n_basis=3
-dt=0.01
+dt=0.1
 
 #######MPC
 states = casadi.SX.sym('states',nx)
@@ -84,8 +85,8 @@ for i in range(n_states):
 
 
 for i in range(n_controls):
-    lbx[n_states * (N + 1)+i:n_states * (N + 1) + n_controls * N:n_controls] = -2
-    ubx[n_states * (N + 1)+i:n_states * (N + 1) + n_controls * N:n_controls] = 2
+    lbx[n_states * (N + 1)+i:n_states * (N + 1) + n_controls * N:n_controls] = -1
+    ubx[n_states * (N + 1)+i:n_states * (N + 1) + n_controls * N:n_controls] = 1
 
 lbg = casadi.DM.zeros((n_states * (N + 1) ))
 ubg = casadi.DM.zeros((n_states * (N + 1)))
@@ -117,7 +118,7 @@ def shift_timestep( state, control, f):
                                   casadi.reshape(control[:, -1], -1, 1))
     return  next_state, next_control
 if __name__ == '__main__':
-    Ns = 2000
+    Ns = 1000
     Turedata = np.zeros((n_normal, Ns + 1))
     Turedata[:,0]=dm_to_array(state_0[:n_normal]).reshape(-1,)
     controldata = np.zeros((nu, Ns))
